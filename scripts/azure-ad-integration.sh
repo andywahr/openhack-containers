@@ -95,3 +95,20 @@ az aks create \
 
 # Get the admin credentials for the kubeconfig context
 az aks get-credentials --resource-group $resourcegroup --name $aksname --admin
+
+ACR_NAME="registry3M84331"
+
+# Get the id of the service principal configured for AKS
+CLIENT_ID=$(az aks show --resource-group $resourcegroup --name $aksname --query "servicePrincipalProfile.clientId" --output tsv)
+
+# Get the ACR registry resource id
+ACR_ID=$(az acr show --name $ACR_NAME --resource-group $resourcegroup --query "id" --output tsv)
+
+# Create role assignment
+az role assignment create --assignee $CLIENT_ID --role acrpull --scope $ACR_ID
+
+#Run Deployments
+for file in ../yaml/*
+do
+  kubectrl apply -f "$file"
+done
