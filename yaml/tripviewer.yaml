@@ -26,6 +26,10 @@ spec:
           value: sqlserver3m84331.database.windows.net
         - name: ASPNETCORE_ENVIRONMENT
           value: Production   
+        - name: USER_API_ENDPOINT
+          value: http://userprofile.default.svc.cluster.local
+        - name: TRIPS_API_ENDPOINT
+          value: http://trips.default.svc.cluster.local
 ---
 apiVersion: v1
 kind: Service
