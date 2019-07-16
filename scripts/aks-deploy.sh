@@ -24,7 +24,7 @@
 
 # Define a variable for the AKS cluster name, resource group, and location
 # Provide your own unique aksname within the Azure AD tenant
-aksname="aksTrips-table4"
+aksname="aksTrips-table4-part4"
 resourcegroup="teamResources"
 location="southcentralus"
 
@@ -77,7 +77,7 @@ az group create --name $resourcegroup --location $location
 # Get the Azure AD tenant ID to integrate with the AKS cluster
 tenantId=$(az account show --query tenantId -o tsv)
 
-# subnet id
+# Create subnet for AKS and get subnetId
 az network vnet subnet create --name kubnet --address-prefixes 10.0.1.0/24 --vnet-name vnet --resource-group teamResources
 subnetId=$(az network vnet subnet show -g teamResources --vnet-name vnet -n vm-subnet --query "id" -o tsv)
 
@@ -90,7 +90,10 @@ az aks create \
   --aad-server-app-id $serverApplicationId \
   --aad-server-app-secret $serverApplicationSecret \
   --aad-client-app-id $clientApplicationId \
-  --aad-tenant-id $tenantId
+  --aad-tenant-id $tenantId \
+  --dns-service-ip 10.0.2.10 \
+  --service-cidr 10.0.2.0/24 \
+  --network-plugin azure \
   --vnet-subnet-id $subnetId
 
 # Get the admin credentials for the kubeconfig context
@@ -107,8 +110,8 @@ ACR_ID=$(az acr show --name $ACR_NAME --resource-group $resourcegroup --query "i
 # Create role assignment
 az role assignment create --assignee $CLIENT_ID --role acrpull --scope $ACR_ID
 
-#Run Deployments
+# Run deployments
 for file in ../yaml/*
 do
-  kubectrl apply -f "$file"
+  kubectl apply -f "$file"
 done
