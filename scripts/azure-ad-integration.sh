@@ -77,6 +77,10 @@ az group create --name $resourcegroup --location $location
 # Get the Azure AD tenant ID to integrate with the AKS cluster
 tenantId=$(az account show --query tenantId -o tsv)
 
+# subnet id
+az network vnet subnet create --name kubnet --address-prefixes 10.0.1.0/24 --vnet-name vnet --resource-group teamResources
+subnetId=$(az network vnet subnet show -g teamResources --vnet-name vnet -n vm-subnet --query "id" -o tsv)
+
 # Create the AKS cluster and provide all the Azure AD integration parameters
 az aks create \
   --resource-group $resourcegroup \
@@ -87,6 +91,7 @@ az aks create \
   --aad-server-app-secret $serverApplicationSecret \
   --aad-client-app-id $clientApplicationId \
   --aad-tenant-id $tenantId
+  --vnet-subnet-id $subnetId
 
 # Get the admin credentials for the kubeconfig context
 az aks get-credentials --resource-group $resourcegroup --name $aksname --admin
