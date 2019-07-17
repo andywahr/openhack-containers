@@ -1,3 +1,45 @@
+<<<<<<< HEAD:yaml/userprofile.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: userprofile
+  namespace: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: userprofile
+  template:
+    metadata:
+      labels:
+        app: userprofile
+      name: userprofile
+    spec:
+      containers:
+      - name: userprofile
+        image: registry3m84331.azurecr.io/tripinsights/userprofile:1.0
+        env:
+        - name: SQL_USER
+          value: sqladmin3M84331        
+        - name: SQL_PASSWORD
+          value: sO7z53Sy8
+        - name: SQL_SERVER
+          value: sqlserver3m84331.database.windows.net  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: userprofile
+  namespace: default
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: userprofile
+=======
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,4 +80,5 @@ spec:
     targetPort: 80
   selector:
     app: userprofile
+>>>>>>> de1bff5bdf7e7e83f1add3c652a6ef5f89d55d37:yaml/100-userprofile.yaml
   type: LoadBalancer
