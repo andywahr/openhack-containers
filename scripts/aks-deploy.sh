@@ -24,7 +24,8 @@
 
 # Define a variable for the AKS cluster name, resource group, and location
 # Provide your own unique aksname within the Azure AD tenant
-aksname="aksTrips-table4-part5"
+suffix="table4-part5"
+aksname="aksTrips-$suffix"
 resourcegroup="teamResources"
 location="southcentralus"
 adgroupname="Cluster-Admin-aksTrips-table4-part4"
@@ -77,6 +78,7 @@ az group create --name $resourcegroup --location $location
 
 # Get the Azure AD tenant ID to integrate with the AKS cluster
 tenantId=$(az account show --query tenantId -o tsv)
+subscriptionId=$(az account show --query id -o tsv)
 
 # Create subnet for AKS and get subnetId
 az network vnet subnet create --name kubnet --address-prefixes 10.0.1.0/24 --vnet-name vnet --resource-group teamResources
@@ -135,8 +137,60 @@ az role assignment create \
   --role "Azure Kubernetes Service Cluster Admin Role" \
   --scope $AKS_ID
 
+#Create Managed Identity for Pods to Auth against Key Vault
+keyVaultIdentityName="KeyVaultIdentity-$aksname"
+az identity create -g $resourcegroup --name $keyVaultIdentityName
+#Get Info From Resource Group - identity
+keyVaultIdentityId=$(az identity show -g $resourcegroup --name $keyVaultIdentityName -o tsv --query "id")
+#Get Info From Resource Group - clientId
+keyVaultClientId=$(az identity show -g $resourcegroup --name $keyVaultIdentityName -o tsv --query "clientId")
+
+az role assignment create --role "Managed Identity Operator" --assignee $CLIENT_ID --scope $keyVaultIdentityId
+
+#Create Azure Key Vault
+keyVaultName="kv$suffix"
+az keyvault create -g $resourcegroup --name $keyVaultName
+# set policy to access keys in your Key Vault
+az keyvault set-policy -g $resourcegroup -n $keyVaultName --key-permissions get --spn $keyVaultClientId
+
+# Create SQL Secrets
+az keyvault secret  set --name "SQL-USER" --value "sqladmin3M84331" --vault-name $keyVaultName 
+az keyvault secret  set --name "SQL-PASSWORD" --value "sO7z53Sy8" --vault-name $keyVaultName 
+az keyvault secret  set --name "SQL-SERVER" --value "sqlserver3m84331.database.windows.net" --vault-name $keyVaultName  
+
+#evil Text replacement fun for Identity
+escapedKeyVaultIdentityId=$(sed "s.\/.\\\/.g" <<< $keyVaultIdentityId)
+escapedKeyVaultClientId=$(sed "s.\/.\\\/.g" <<< $keyVaultClientId)
+
+clientIdReplaceRegex="s/\\\$CLIENTID\\\$/$escapedKeyVaultClientId/g"
+sed -i -e $clientIdReplaceRegex ../yaml/001-adIdentity.yaml
+
+idReplaceRegex="s/\\\$ID\\\$/$escapedKeyVaultIdentityId/g"
+sed -i -e $idReplaceRegex ../yaml/001-adIdentity.yaml
+
+kubectl create -f https://raw.githubusercontent.com/Azure/kubernetes-keyvault-flexvol/master/deployment/kv-flexvol-installer.yaml
+kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
+
+mkdir ../runMe
+cp ../yaml/* ../runMe
+
+#evil Text replacement fun for all 100 yamls
+for file in ../runMe/100*
+do
+  keyVaultNameChange="s.\\\$KEYVAULTNAME\\\$.$keyVaultName.g"
+  resourceGroupChange="s.\\\$RESOURCEGROUP\\\$.$resourcegroup.g"
+  subscriptionChange="s.\\\$SUBSCRIPTION\\\$.$subscriptionId.g"
+  tenantChange="s.\\\$TENANT\\\$.$tenantId.g"
+
+  sed -i -e $keyVaultNameChange $file
+  sed -i -e $resourceGroupChange $file
+  sed -i -e $subscriptionChange $file
+  sed -i -e $tenantChange $file
+done       
+
+
 # Run deployments
-for file in ../yaml/*
+for file in ../runMe/*
 do
   kubectl apply -f "$file"
 done
