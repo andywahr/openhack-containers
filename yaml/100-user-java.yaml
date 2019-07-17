@@ -31,7 +31,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: user-java
-  namespace: default
+  namespace: api
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
@@ -40,48 +40,4 @@ spec:
     targetPort: 80
   selector:
     app: user-java
-=======
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: user-java
-  namespace: default
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: user-java
-  template:
-    metadata:
-      labels:
-        app: user-java
-      name: user-java
-    spec:
-      containers:
-      - name: user-java
-        image: registry3m84331.azurecr.io/tripinsights/user-java:1.0
-        env:
-        - name: SQL_USER
-          value: sqladmin3M84331        
-        - name: SQL_PASSWORD
-          value: sO7z53Sy8
-        - name: SQL_SERVER
-          value: sqlserver3m84331.database.windows.net
-        - name: ASPNETCORE_ENVIRONMENT
-          value: Production   
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: user-java
-  namespace: default
-  annotations:
-    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
-spec:
-  ports:
-  - port: 80
-    targetPort: 80
-  selector:
-    app: user-java
->>>>>>> de1bff5bdf7e7e83f1add3c652a6ef5f89d55d37:yaml/100-user-java.yaml
-  type: LoadBalancer
+    type: LoadBalancer
