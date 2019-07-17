@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: userprofile
-  namespace: default
+  namespace: api
 spec:
   replicas: 1
   selector:
