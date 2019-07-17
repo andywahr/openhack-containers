@@ -115,3 +115,27 @@ for file in ../yaml/*
 do
   kubectl apply -f "$file"
 done
+
+#Get AKS Cluster ID
+AKS_ID=$(az aks show \
+    --resource-group $resourcegroup --name $aksname \
+    --query id -o tsv)
+
+# Create Cluster Admin AD Group
+CLUSTERADMIN_ID=$(az ad group create --display-name Cluster-Admin-$aksname --mail-nickname Cluster-Admin-$aksname --query objectId -o tsv)
+
+# Add all hack accounts to group
+HACKER1=$(az ad user show --upn-or-object-id hacker1y01@OTAPRD320ops.onmicrosoft.com  --query objectId -o tsv)
+az ad group member add --group Cluster-Admin-$aksname --member-id $HACKER1
+HACKER2=$(az ad user show --upn-or-object-id hacker2eyv@OTAPRD320ops.onmicrosoft.com  --query objectId -o tsv)
+az ad group member add --group Cluster-Admin-$aksname --member-id $HACKER2
+HACKER3=$(az ad user show --upn-or-object-id hacker35o7@OTAPRD320ops.onmicrosoft.com  --query objectId -o tsv)
+az ad group member add --group Cluster-Admin-$aksname --member-id $HACKER3
+HACKER4=$(az ad user show --upn-or-object-id hacker4awb@OTAPRD320ops.onmicrosoft.com  --query objectId -o tsv)
+az ad group member add --group Cluster-Admin-$aksname --member-id $HACKER4
+
+# Assign AD Group to Admin Role
+az role assignment create \
+  --assignee $CLUSTERADMIN_ID \
+  --role "Azure Kubernetes Service Cluster Admin Role" \
+  --scope $AKS_ID
