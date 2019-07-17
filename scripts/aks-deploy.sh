@@ -158,21 +158,30 @@ az keyvault secret  set --name "SQL-USER" --value "sqladmin3M84331" --vault-name
 az keyvault secret  set --name "SQL-PASSWORD" --value "sO7z53Sy8" --vault-name $keyVaultName 
 az keyvault secret  set --name "SQL-SERVER" --value "sqlserver3m84331.database.windows.net" --vault-name $keyVaultName  
 
+# Install the KeyVault FlexVol and the Azure AD Identitiy (Managed Identities) for Pods
+kubectl create -f https://raw.githubusercontent.com/Azure/kubernetes-keyvault-flexvol/master/deployment/kv-flexvol-installer.yaml
+kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
+
+#Clean temp dir
+rm ../runMe/*
+mkdir ../runMe
+yes | cp -f ../yaml/* ../runMe
+
 #evil Text replacement fun for Identity
 escapedKeyVaultIdentityId=$(sed "s.\/.\\\/.g" <<< $keyVaultIdentityId)
 escapedKeyVaultClientId=$(sed "s.\/.\\\/.g" <<< $keyVaultClientId)
 
 clientIdReplaceRegex="s/\\\$CLIENTID\\\$/$escapedKeyVaultClientId/g"
-sed -i -e $clientIdReplaceRegex ../yaml/001-adIdentity.yaml
+sed -i -e $clientIdReplaceRegex ../runMe/001-adIdentity.yaml
 
 idReplaceRegex="s/\\\$ID\\\$/$escapedKeyVaultIdentityId/g"
-sed -i -e $idReplaceRegex ../yaml/001-adIdentity.yaml
+sed -i -e $idReplaceRegex ../runMe/001-adIdentity.yaml
 
-kubectl create -f https://raw.githubusercontent.com/Azure/kubernetes-keyvault-flexvol/master/deployment/kv-flexvol-installer.yaml
-kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
-
-mkdir ../runMe
-cp ../yaml/* ../runMe
+#Install HELM
+#curl -LO https://git.io/get_helm.sh
+#chmod 700 get_helm.sh
+#./get_helm.sh
+#helm init
 
 #evil Text replacement fun for all 100 yamls
 for file in ../runMe/100*
@@ -188,9 +197,10 @@ do
   sed -i -e $tenantChange $file
 done       
 
-
 # Run deployments
 for file in ../runMe/*
 do
   kubectl apply -f "$file"
 done
+
+rm ../runMe/*

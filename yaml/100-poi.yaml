@@ -5,7 +5,7 @@ metadata:
   namespace: api  
   labels:
     app: poi
-    keyVaultIdentityBinding: keyVaultIdentity
+    keyvaultidentitybinding: keyvaultidentity
 spec:
   replicas: 1
   selector:
@@ -15,7 +15,7 @@ spec:
     metadata:
       labels:
         app: poi
-        keyVaultIdentityBinding: keyVaultIdentity        
+        keyvaultidentitybinding: keyvaultidentity        
       name: poi
     spec:
       containers:

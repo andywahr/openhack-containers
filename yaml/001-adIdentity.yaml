@@ -1,16 +1,16 @@
 apiVersion: "aadpodidentity.k8s.io/v1"
 kind: AzureIdentity
 metadata:
-  name: keyVaultIdentity
+  name: keyvaultidentity
 spec:
   type: 0
-  ResourceID: /subscriptions/b15bc26e-9590-439f-aad5-06c219dcc93c/resourcegroups/teamResources/providers/Microsoft.ManagedIdentity/userAssignedIdentities/KeyVaultIdentity-aksTrips-table4-part5
-  ClientID: 4def3b05-f36a-495e-abda-98ee2f3c9690
+  ResourceID: $ID$
+  ClientID: $CLIENTID$
 ---
 apiVersion: "aadpodidentity.k8s.io/v1"
 kind: AzureIdentityBinding
 metadata:
-  name: keyVaultIdentityBinding 
+  name: keyvaultidentitybinding 
 spec:
-  AzureIdentity: keyVaultIdentity
-  Selector: keyVaultIdentity
+  AzureIdentity: keyvaultidentity
+  Selector: keyvaultidentity

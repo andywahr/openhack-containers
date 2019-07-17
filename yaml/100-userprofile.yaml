@@ -1,9 +1,11 @@
-<<<<<<< HEAD:yaml/userprofile.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: userprofile
   namespace: api
+  labels:
+    app: userprofile
+    keyvaultidentitybinding: keyvaultidentity
 spec:
   replicas: 1
   selector:
@@ -13,24 +15,35 @@ spec:
     metadata:
       labels:
         app: userprofile
+        keyvaultidentitybinding: keyvaultidentity        
       name: userprofile
     spec:
       containers:
       - name: userprofile
         image: registry3m84331.azurecr.io/tripinsights/userprofile:1.0
-        env:
-        - name: SQL_USER
-          value: sqladmin3M84331        
-        - name: SQL_PASSWORD
-          value: sO7z53Sy8
-        - name: SQL_SERVER
-          value: sqlserver3m84331.database.windows.net  
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+          readOnly: true
+      volumes:
+      - name: secrets
+        flexVolume:
+          driver: "azure/kv"
+          options:
+            usepodidentity: "true"                   # [OPTIONAL] if not provided, will default to "false"
+            keyvaultname: "$KEYVAULTNAME$"              # [REQUIRED] the name of the KeyVault
+            keyvaultobjectnames: "SQL-USER;SQL-PASSWORD;SQL-SERVER"         # [REQUIRED] list of KeyVault object names (semi-colon separated)
+            keyvaultobjectaliases: "SQL_USER;SQL_PASSWORD;SQL_SERVER"      # [OPTIONAL] list of KeyVault object aliases
+            keyvaultobjecttypes: "secret;secret;secret"               # [REQUIRED] list of KeyVault object types: secret, key, cert
+            resourcegroup: "$RESOURCEGROUP$"        # [REQUIRED] the resource group of the KeyVault
+            subscriptionid: "$SUBSCRIPTION$"                 # [REQUIRED] the subscription ID of the KeyVault
+            tenantid: "$TENANT$"                    # [REQUIRED] the tenant ID of the KeyVault
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: userprofile
-  namespace: default
+  namespace: api
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
@@ -39,46 +52,4 @@ spec:
     targetPort: 80
   selector:
     app: userprofile
-=======
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: userprofile
-  namespace: default
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: userprofile
-  template:
-    metadata:
-      labels:
-        app: userprofile
-      name: userprofile
-    spec:
-      containers:
-      - name: userprofile
-        image: registry3m84331.azurecr.io/tripinsights/userprofile:1.0
-        env:
-        - name: SQL_USER
-          value: sqladmin3M84331        
-        - name: SQL_PASSWORD
-          value: sO7z53Sy8
-        - name: SQL_SERVER
-          value: sqlserver3m84331.database.windows.net  
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: userprofile
-  namespace: default
-  annotations:
-    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
-spec:
-  ports:
-  - port: 80
-    targetPort: 80
-  selector:
-    app: userprofile
->>>>>>> de1bff5bdf7e7e83f1add3c652a6ef5f89d55d37:yaml/100-userprofile.yaml
   type: LoadBalancer
