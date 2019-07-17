@@ -1,4 +1,3 @@
-<<<<<<< HEAD:yaml/tripviewer.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,52 +44,4 @@ spec:
     targetPort: 80
   selector:
     app: tripviewer
-=======
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tripviewer
-  namespace: default
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: tripviewer
-  template:
-    metadata:
-      labels:
-        app: tripviewer
-      name: tripviewer
-    spec:
-      containers:
-      - name: tripviewer
-        image: registry3m84331.azurecr.io/tripinsights/tripviewer:1.0
-        env:
-        - name: SQL_USER
-          value: sqladmin3M84331        
-        - name: SQL_PASSWORD
-          value: sO7z53Sy8
-        - name: SQL_SERVER
-          value: sqlserver3m84331.database.windows.net
-        - name: ASPNETCORE_ENVIRONMENT
-          value: Production   
-        - name: USER_API_ENDPOINT
-          value: http://userprofile.default.svc.cluster.local
-        - name: TRIPS_API_ENDPOINT
-          value: http://trips.default.svc.cluster.local
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: tripviewer
-  namespace: default
-  annotations:
-    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
-spec:
-  ports:
-  - port: 80
-    targetPort: 80
-  selector:
-    app: tripviewer
->>>>>>> de1bff5bdf7e7e83f1add3c652a6ef5f89d55d37:yaml/100-tripviewer.yaml
   type: LoadBalancer
