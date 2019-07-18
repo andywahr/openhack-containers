@@ -5,7 +5,7 @@ metadata:
   namespace: api
   labels:
     app: user-java
-    keyvaultidentitybinding: keyvaultidentity
+    aadpodidbinding: keyvaultidentity
 spec:
   replicas: 1
   selector:
@@ -15,7 +15,7 @@ spec:
     metadata:
       labels:
         app: user-java
-        keyvaultidentitybinding: keyvaultidentity        
+        aadpodidbinding: keyvaultidentity        
       name: user-java
     spec:
       containers:
@@ -24,6 +24,10 @@ spec:
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: Production   
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+          readOnly: true
       volumes:
       - name: secrets
         flexVolume:

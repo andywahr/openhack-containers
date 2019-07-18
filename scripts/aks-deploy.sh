@@ -24,7 +24,7 @@
 
 # Define a variable for the AKS cluster name, resource group, and location
 # Provide your own unique aksname within the Azure AD tenant
-suffix="table4-part5"
+suffix="table4-part6"
 aksname="aksTrips-$suffix"
 resourcegroup="teamResources"
 location="southcentralus"
@@ -151,7 +151,7 @@ az role assignment create --role "Managed Identity Operator" --assignee $CLIENT_
 keyVaultName="kv$suffix"
 az keyvault create -g $resourcegroup --name $keyVaultName
 # set policy to access keys in your Key Vault
-az keyvault set-policy -g $resourcegroup -n $keyVaultName --key-permissions get --spn $keyVaultClientId
+az keyvault set-policy -g $resourcegroup -n $keyVaultName --secret-permissions get --spn $keyVaultClientId
 
 # Create SQL Secrets
 az keyvault secret  set --name "SQL-USER" --value "sqladmin3M84331" --vault-name $keyVaultName 
@@ -181,7 +181,9 @@ sed -i -e $idReplaceRegex ../runMe/001-adIdentity.yaml
 #curl -LO https://git.io/get_helm.sh
 #chmod 700 get_helm.sh
 #./get_helm.sh
-#helm init
+
+helm init --service-account tiller 
+helm install stable/nginx-ingress --namespace web --set controller.replicaCount=2 --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux
 
 #evil Text replacement fun for all 100 yamls
 for file in ../runMe/100*
