@@ -181,9 +181,13 @@ sed -i -e $idReplaceRegex ../runMe/001-adIdentity.yaml
 #curl -LO https://git.io/get_helm.sh
 #chmod 700 get_helm.sh
 #./get_helm.sh
-
+helm repo update
 helm init --service-account tiller 
 helm install stable/nginx-ingress --namespace web --set controller.replicaCount=2 --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux
+helm install stable/prometheus-operator --name prometheus-operator --namespace monitoring
+
+#Add Azure Container Insights (Monitor)
+az aks enable-addons -a monitoring -n $aksname -g $resourcegroup
 
 #evil Text replacement fun for all 100 yamls
 for file in ../runMe/100*
@@ -206,3 +210,4 @@ do
 done
 
 rm ../runMe/*
+
