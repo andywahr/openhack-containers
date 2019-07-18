@@ -53,3 +53,14 @@ spec:
   selector:
     app: userprofile
   type: LoadBalancer
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: userprofile
+  namespace: api
+spec:
+  host: userprofile.api.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL

@@ -56,3 +56,43 @@ spec:
   selector:
     app: poi
   type: LoadBalancer
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: poi
+  namespace: api
+spec:
+  host: poi
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: poi
+  namespace: api  
+spec:
+  hosts:
+  - table4-openhack.southcentralus.cloudapp.azure.com
+  gateways:
+  - tripviewer-api-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/poi
+    - uri:
+        prefix: /api/healthcheck/poi
+    - uri:
+        prefix: /api/docs/poi
+    - uri:
+        prefix: /swagger/docs/poi
+    route:
+    - destination:
+        port:
+          number: 80
+        host: poi
+    retries:
+      attempts: 3
+      perTryTimeout: 2s

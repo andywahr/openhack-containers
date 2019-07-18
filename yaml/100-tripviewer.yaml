@@ -21,9 +21,9 @@ spec:
         - name: ASPNETCORE_ENVIRONMENT
           value: Production   
         - name: USER_API_ENDPOINT
-          value: http://userprofile.api.svc.cluster.local
+          value: https://userprofile.api.svc.cluster.local
         - name: TRIPS_API_ENDPOINT
-          value: http://trips.api.svc.cluster.local
+          value: https://trips.api.svc.cluster.local
 ---
 apiVersion: v1
 kind: Service
@@ -39,3 +39,14 @@ spec:
   selector:
     app: tripviewer
   type: LoadBalancer
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: tripviewer
+  namespace: web
+spec:
+  host: tripviewer.web.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
