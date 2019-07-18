@@ -15,6 +15,10 @@ spec:
           serviceName: tripviewer
           servicePort: 80
         path: /(.*)
+      - backend:
+          serviceName: insurance
+          servicePort: 80
+        path: /insurance(.*)    
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
